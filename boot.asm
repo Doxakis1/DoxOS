@@ -1,7 +1,23 @@
-ORG 0x7c00
+ORG 0
 BITS 16 ; Legacy boot loaders start with 16 bits
 
-
+; BIOS Parameter block error prevention code following (read more online about this if interested)
+_biosprotect:
+    jmp short init_cs
+    nop
+times 33 db 0 ; Makes 33 bytes for the needed block
+; BIOS Parameter block ends here
+init_cs:
+    jmp 0x7c0:init ; this makes our cs (code segement) be the correct 0x7c0
+init:
+    cli     ; stops interupts through the use of the interupt flag
+    mov     ax, 0x7c0 ; we cannot use intermidiates to load to ds and es hence we use ax
+    mov     ds, ax ; we make datasegment(data offset) be 0x7c0
+    mov     es, ax ; we do the same for extra segment (extra segment offset) be 0x7c0
+    mov     ax, 0x00 
+    mov     ss, ax  ; we put 0 into the stack segment(offset) with the use of ax
+    mov     sp, 0x7c00 ; we put our stackpointer to our Origin at 0x7c00
+    sti     ; re-enables interupts
 start:
     mov     si, message
     call    print_string
